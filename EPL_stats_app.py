@@ -9,6 +9,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+
 # Display the image at the beginning of the app
 image_path = 'VVD.jpeg'
 st.image(image_path, caption='Virgil van Dijk', use_column_width=True)
@@ -60,64 +64,13 @@ st.markdown(download_link(df_selected, 'Download CSV File'), unsafe_allow_html=T
 #A scatter plot is created to show the correlation between the 'Min' column and both the 'G' (goals) and 'A' (assists) columns for the selected players within the selected team(s).
 #The user can select specific players from the selected team(s) using the sidebar.
 
+# Initialize session state to store user selections
+if 'selected_players_a' not in st.session_state:
+    st.session_state.selected_players_a = []
 
-# Scatter plot for correlation between 'Min' and 'A' columns
-if st.button('Scatter Plot: Min vs A'):
-    st.header('Correlation between Minutes Played (Min) vs Assists (A)')
-    selected_players = st.sidebar.multiselect('Select Players', df_selected['Player'].unique(), df_selected['Player'].unique())
-    df_selected_players = df_selected[df_selected['Player'].isin(selected_players)]
-    
-    if not df_selected_players.empty:  # Only plot if there are selected players
-        fig, ax = plt.subplots(figsize=(10, 6))
-        scatters = []
-        for player in selected_players:
-            player_data = df_selected_players[df_selected_players['Player'] == player]
-            scatter = ax.scatter(player_data['Min'], player_data['A'], alpha=0.7)
-            scatters.append((scatter, player))
-            
-        ax.set_xlabel('Minutes Played (Min)')
-        ax.set_ylabel('Assists (A)')
-        ax.set_title('Correlation between Minutes Played vs Assists')
-        
-        # Adjust label positions for better readability
-        for scatter, player in scatters:
-            for i, (x, y) in enumerate(scatter.get_offsets()):
-                ax.annotate('', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=8)
-        
-        ax.legend([scatter for scatter, player in scatters], [player for scatter, player in scatters], 
-                  bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small', markerscale=0.6)
-        
-        plt.tight_layout()  # Adjust plot layout for better visualization
-        st.pyplot(fig)
+if 'selected_players_g' not in st.session_state:
+    st.session_state.selected_players_g = []
 
-# Scatter plot for correlation between 'Min' and 'G' columns
-if st.button('Scatter Plot: Min vs G'):
-    st.header('Correlation between Minutes Played (Min) vs Goals (G)')
-    selected_players = st.sidebar.multiselect('Select Players', df_selected['Player'].unique(), df_selected['Player'].unique())
-    df_selected_players = df_selected[df_selected['Player'].isin(selected_players)]
-    
-    if not df_selected_players.empty:  # Only plot if there are selected players
-        fig, ax = plt.subplots(figsize=(10, 6))
-        scatters = []
-        for player in selected_players:
-            player_data = df_selected_players[df_selected_players['Player'] == player]
-            scatter = ax.scatter(player_data['Min'], player_data['G'], alpha=0.7)
-            scatters.append((scatter, player))
-            
-        ax.set_xlabel('Minutes Played (Min)')
-        ax.set_ylabel('Goals (G)')
-        ax.set_title('Correlation between Minutes Played vs Goals')
-        
-        # Adjust label positions for better readability
-        for scatter, player in scatters:
-            for i, (x, y) in enumerate(scatter.get_offsets()):
-                ax.annotate('', (x, y), textcoords="offset points", xytext=(0,10), ha='center', fontsize=8)
-        
-        ax.legend([scatter for scatter, player in scatters], [player for scatter, player in scatters], 
-                  bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small', markerscale=0.6)
-        
-        plt.tight_layout()  # Adjust plot layout for better visualization
-        st.pyplot(fig)
 
 #PLAYER COMPARISON
 #Player Selection
@@ -189,8 +142,8 @@ for team in top_teams_goals.index.get_level_values(0):
 correlation_matrix = df_selected.corr()
 
 # Create a heatmap to visualize the correlation matrix
-plt.figure(figsize=(10, 8))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0)
+fig, ax = plt.subplots(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0, ax=ax)
 
 # Set heatmap title and labels
 plt.title('Correlation Heatmap between Player Stats and Team Performance')
@@ -198,7 +151,8 @@ plt.xlabel('Player Statistics')
 plt.ylabel('Player Statistics')
 
 # Display the heatmap in Streamlit
-st.pyplot()
+st.pyplot(fig)
+
 
 # Explanation about the heatmap
 st.markdown("""

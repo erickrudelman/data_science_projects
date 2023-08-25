@@ -97,6 +97,10 @@ def reverse_complement(sequence):
 # Streamlit app
 st.title('Reverse Complement Calculator')
 
+# Preprocess the sequence to remove whitespace characters
+sequence_input = sequence_input.replace('\n', '').replace(' ', '')
+
+
 # Calculate reverse complement
 if sequence_input:
     reverse_comp_seq = reverse_complement(sequence_input)
